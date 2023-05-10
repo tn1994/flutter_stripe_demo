@@ -26,6 +26,13 @@ class StripeModel {
 }
 
 class SignIn extends StatelessWidget {
+  final String _current;
+
+  // Function _onChanged;
+
+  // SignIn(this._current, this._onChanged);
+  const SignIn(this._current, {super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,27 +43,7 @@ class SignIn extends StatelessWidget {
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-            Text('Welcome!!'),
-
-            // Column(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     // これで両端に寄せる
-            //     children: [
-            //       FloatingActionButton(
-            //         child: Icon(
-            //           Icons.arrow_left,
-            //           color: Colors.white,
-            //         ),
-            //         shape: CircleBorder(),
-            //         onPressed: () {
-            //           Navigator.pop(
-            //             context,
-            //           );
-            //         },
-            //       ),
-            //     ]),
-          ])),
-
+              children: [Text('Welcome $_current!!')])),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(
@@ -64,12 +51,16 @@ class SignIn extends StatelessWidget {
           );
         },
         tooltip: 'nav back',
-        child: const Icon(
-          Icons.arrow_left,
-        ),
+        child: const Icon(Icons.arrow_left),
       ), // This
     );
   }
+}
+
+void getProducts() async {
+  debugPrint('start getProducts');
+  var res = await StripeModel.getProducts();
+  debugPrint(res);
 }
 
 class DetailPage extends StatelessWidget {
@@ -79,20 +70,46 @@ class DetailPage extends StatelessWidget {
 
   // https://b1san-blog.com/post/flutter/flutter-text-field/
   //Controllerの定義
+  final String plan;
+  DetailPage(this.plan, {super.key});
+
   final controller = TextEditingController();
-
-  //Controllerから値の取得
-  // String _message = controller.text;
-
-  void getProducts() async {
-    debugPrint('start getProducts');
-    var res = await StripeModel.getProducts();
-    debugPrint(res);
-  }
 
   bool check() {
     if (controller.text.isNotEmpty) return true;
     return false;
+  }
+
+  String getCost(plan) {
+    if (plan == 'Pro') return '¥1,000,000-';
+    return '¥100-';
+  }
+
+  Widget planTableWidget(plan) {
+    // https://417.run/pg/flutter-dart/simple-table/
+    return Table(
+      border: TableBorder.all(color: Colors.grey),
+      children: <TableRow>[
+        TableRow(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+            ),
+            children: ['Plan', 'Cost Per Month']
+                .map((e) => Container(
+                    alignment: Alignment.center,
+                    margin: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Text(e)))
+                .toList()),
+        TableRow(
+          children: [plan, getCost(plan)]
+              .map((e) => Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(top: 10, bottom: 10),
+                  child: Text(e)))
+              .toList(),
+        ),
+      ],
+    );
   }
 
   @override
@@ -107,12 +124,23 @@ class DetailPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
+                margin: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [Text('Select Subscription')],
+                )),
+            Container(
+                padding: const EdgeInsets.all(100),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [planTableWidget(plan)],
+                )),
+            Container(
               padding: const EdgeInsets.all(100),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Sign Up'),
-                  //Controllerの設定
                   TextField(
                     maxLength: 16,
                     maxLines: 1,
@@ -126,17 +154,17 @@ class DetailPage extends StatelessWidget {
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     IconButton(
                         onPressed: () async {
-                          // getProducts();
+                          getProducts();
 
-                          var res = await StripeModel.getProducts();
-                          debugPrint(res);
+                          // var res = await StripeModel.getProducts();
+                          // debugPrint(res);
 
                           if (check()) {
                             Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  // transitionDuration: Duration(milliseconds: 500),
-                                  pageBuilder: (_, __, ___) => SignIn(),
+                                  pageBuilder: (_, __, ___) =>
+                                      SignIn(controller.text),
                                 ));
                           }
                         },
@@ -154,8 +182,8 @@ class DetailPage extends StatelessWidget {
                 ],
               ),
             ),
-            Column(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                // これで両端に寄せる
+            Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FloatingActionButton(
                     child: Icon(
@@ -176,6 +204,9 @@ class DetailPage extends StatelessWidget {
 }
 
 class SubscriptionState extends State<Subscription> {
+  final proPlan = 'Pro';
+  final standardPlan = 'Standard';
+
   @override
   void initState() {
     super.initState();
@@ -199,7 +230,7 @@ class SubscriptionState extends State<Subscription> {
                   child: SizedBox(
                     width: 275,
                     height: 80,
-                    child: Center(child: Text('Pro')),
+                    child: Center(child: Text(proPlan)),
                   ),
                 ),
                 onTap: () {
@@ -208,7 +239,7 @@ class SubscriptionState extends State<Subscription> {
                       context,
                       PageRouteBuilder(
                         transitionDuration: Duration(milliseconds: 500),
-                        pageBuilder: (_, __, ___) => DetailPage(),
+                        pageBuilder: (_, __, ___) => DetailPage(proPlan),
                       ));
                 },
               ),
@@ -221,7 +252,7 @@ class SubscriptionState extends State<Subscription> {
                   child: SizedBox(
                     width: 275,
                     height: 80,
-                    child: Center(child: Text('Standard')),
+                    child: Center(child: Text(standardPlan)),
                   ),
                 ),
                 onTap: () {
@@ -230,7 +261,7 @@ class SubscriptionState extends State<Subscription> {
                       context,
                       PageRouteBuilder(
                         transitionDuration: Duration(milliseconds: 500),
-                        pageBuilder: (_, __, ___) => DetailPage(),
+                        pageBuilder: (_, __, ___) => DetailPage(standardPlan),
                       ));
                 },
               ),
