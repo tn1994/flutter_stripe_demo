@@ -19,4 +19,5 @@ samples, guidance on mobile development, and a full API reference.
 
 ```shell
 flutter create .
+flutter pub add http
 ```

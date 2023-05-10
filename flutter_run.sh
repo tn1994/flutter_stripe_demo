@@ -4,7 +4,7 @@ set -eu
 # do in docker container
 
 # cd ./src
-# rm pubspec.lock
+rm pubspec.lock
 flutter pub get
 
 #flutter pub outdated
